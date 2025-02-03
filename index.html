@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Kontaktformular</title>
+  <!-- jQuery einbinden -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    label { font-weight: bold; }
+    input, textarea { width: 100%; padding: 10px; margin: 5px 0; }
+    button { padding: 10px 20px; }
+    .error { color: red; }
+    .success { color: green; }
+  </style>
+</head>
+<body>
+  <h1>Kontaktformular</h1>
+  <form id="contactForm">
+    <div>
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" required>
+      <div id="nameError" class="error"></div>
+    </div>
+    <div>
+      <label for="email">E-Mail:</label>
+      <input type="email" id="email" name="email" required>
+      <div id="emailError" class="error"></div>
+    </div>
+    <div>
+      <label for="subject">Betreff:</label>
+      <input type="text" id="subject" name="subject" required>
+      <div id="subjectError" class="error"></div>
+    </div>
+    <div>
+      <label for="message">Nachricht:</label>
+      <textarea id="message" name="message" rows="5" required></textarea>
+      <div id="messageError" class="error"></div>
+    </div>
+    <button type="submit">Absenden</button>
+  </form>
+  <div id="result"></div>
+
+  <script>
+    // Validierungsfunktion mit Regular Expressions
+    function validateForm() {
+      let valid = true;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      $('.error').text('');
+
+      if ($('#name').val().trim() === '') {
+        $('#nameError').text('Bitte geben Sie Ihren Namen ein.');
+        valid = false;
+      }
+      if (!emailRegex.test($('#email').val().trim())) {
+        $('#emailError').text('Bitte geben Sie eine gültige E-Mail-Adresse ein.');
+        valid = false;
+      }
+      if ($('#subject').val().trim() === '') {
+        $('#subjectError').text('Bitte geben Sie einen Betreff ein.');
+        valid = false;
+      }
+      if ($('#message').val().trim() === '') {
+        $('#messageError').text('Bitte geben Sie eine Nachricht ein.');
+        valid = false;
+      }
+      return valid;
+    }
+
+    // Formular abschicken mittels AJAX (XMLHttpRequest)
+    $(document).ready(function(){
+      $('#contactForm').on('submit', function(e){
+        e.preventDefault(); // Standardverhalten verhindern
+
+        if (!validateForm()) return;
+
+        let formData = {
+          name: $('#name').val().trim(),
+          email: $('#email').val().trim(),
+          subject: $('#subject').val().trim(),
+          message: $('#message').val().trim()
+        };
+
+        $.ajax({
+          url: 'submit.php', // Server-Skript
+          type: 'POST',
+          data: formData,
+          dataType: 'json',
+          success: function(response) {
+            if (response.success) {
+              $('#result').html('<p class="success">' + response.message + '</p>');
+              $('#contactForm')[0].reset();
+            } else {
+              $('#result').html('<p class="error">' + response.message + '</p>');
+            }
+          },
+          error: function(xhr, status, error) {
+            $('#result').html('<p class="error">Es ist ein Fehler aufgetreten: ' + error + '</p>');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
